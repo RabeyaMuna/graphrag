@@ -3,6 +3,9 @@
 
 """Util functions to tag noun phrases for filtering."""
 
+# README.md file is required for the package build process.
+# Please ensure that the README.md file exists in the root directory of the package.
+
 
 def is_compound(tokens: list[str]) -> bool:
     """List of tokens forms a compound noun phrase."""
