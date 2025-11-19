@@ -207,11 +207,11 @@ class TestIndexer:
             "--root",
             root.resolve().as_posix(),
             "--method",
-            query_config["method"],
+            query_config.get("method", "default_method"),
             "--community-level",
             str(query_config.get("community_level", 2)),
             "--query",
-            query_config["query"],
+            query_config.get("query", ""),
         ]
 
         logger.info("running command ", " ".join(command))
@@ -261,9 +261,9 @@ class TestIndexer:
 
         print("running queries")
         for query in query_config:
-            result = self.__run_query(root, query)
+            result = self.__run_query(root, query) if query and isinstance(query, dict) else None
             print(f"Query: {query}\nResponse: {result.stdout}")
 
-            assert result.returncode == 0, "Query failed"
+            assert result.returncode == 0, f"Query failed: {query}"\n            assert result.stdout is not None, "Query returned no results"
             assert result.stdout is not None, "Query returned no output"
             assert len(result.stdout) > 0, "Query returned empty output"
