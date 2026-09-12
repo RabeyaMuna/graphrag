@@ -142,10 +142,16 @@ class TestIndexer:
         ]
         command = [arg for arg in command if arg]
         logger.info("running command ", " ".join(command))
-        completion = subprocess.run(command, env=os.environ)
-        assert completion.returncode == 0, (
-            f"Indexer failed with return code: {completion.returncode}"
-        )
+        # Capture output so we can provide a clearer error message on failure
+        completion = subprocess.run(command, env=os.environ, capture_output=True, text=True)
+        if completion.returncode != 0:
+            stdout = completion.stdout or ""
+            stderr = completion.stderr or ""
+            raise RuntimeError(
+                f"Indexer failed with return code: {completion.returncode}\n"
+                f"stdout:\n{stdout}\n"
+                f"stderr:\n{stderr}"
+            )
 
     def __assert_indexer_outputs(
         self, root: Path, workflow_config: dict[str, dict[str, Any]]
@@ -221,13 +227,10 @@ class TestIndexer:
     @mock.patch.dict(
         os.environ,
         {
-            **os.environ,
             "BLOB_STORAGE_CONNECTION_STRING": WELL_KNOWN_AZURITE_CONNECTION_STRING,
             "LOCAL_BLOB_STORAGE_CONNECTION_STRING": WELL_KNOWN_AZURITE_CONNECTION_STRING,
-            "AZURE_AI_SEARCH_URL_ENDPOINT": os.getenv("AZURE_AI_SEARCH_URL_ENDPOINT"),
-            "AZURE_AI_SEARCH_API_KEY": os.getenv("AZURE_AI_SEARCH_API_KEY"),
         },
-        clear=True,
+        clear=False,
     )
     @pytest.mark.timeout(2000)
     def test_fixture(

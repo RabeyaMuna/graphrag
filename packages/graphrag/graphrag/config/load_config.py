@@ -188,4 +188,8 @@ def load_config(
     config_data = _parse(config_extension, config_text)
     if cli_overrides:
         _apply_overrides(config_data, cli_overrides)
-    return create_graphrag_config(config_data, root_dir=str(root))
+    try:
+        import pydantic
+        return create_graphrag_config(config_data, root_dir=str(root))
+    except pydantic.ValidationError as e:
+        raise RuntimeError(f"Config validation failed: {e}") from e

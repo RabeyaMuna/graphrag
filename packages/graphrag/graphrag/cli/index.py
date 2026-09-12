@@ -56,7 +56,20 @@ def index_cli(
         cli_overrides["output.base_dir"] = str(output_dir)
         cli_overrides["reporting.base_dir"] = str(output_dir)
         cli_overrides["update_index_output.base_dir"] = str(output_dir)
-    config = load_config(root_dir, config_filepath, cli_overrides)
+    import sys
+    try:
+        from pydantic import ValidationError
+    except Exception:
+        ValidationError = None  # type: ignore
+
+    try:
+        config = load_config(root_dir, config_filepath, cli_overrides)
+    except Exception as e:
+        if ValidationError is not None and isinstance(e, ValidationError):
+            logger.error("Configuration validation error: %s", e)
+            sys.exit(1)
+        raise
+
     _run_index(
         config=config,
         method=method,
