@@ -12,6 +12,7 @@ from graphrag.config.models.graph_rag_config import GraphRagConfig
 def create_graphrag_config(
     values: dict[str, Any] | None = None,
     root_dir: str | None = None,
+    skip_validation: bool = False,
 ) -> GraphRagConfig:
     """Load Configuration Parameters from a dictionary.
 
@@ -40,4 +41,9 @@ def create_graphrag_config(
     if root_dir:
         root_path = Path(root_dir).resolve()
         values["root_dir"] = str(root_path)
+    if skip_validation:
+        # Bypass validation by constructing the model with __dict__ assignment
+        config = GraphRagConfig.__new__(GraphRagConfig)
+        config.__dict__.update(values)
+        return config
     return GraphRagConfig(**values)

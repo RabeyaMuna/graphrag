@@ -142,7 +142,13 @@ class TestIndexer:
         ]
         command = [arg for arg in command if arg]
         logger.info("running command ", " ".join(command))
-        completion = subprocess.run(command, env=os.environ)
+        # Ensure API keys are present for Azure AI models
+        env = os.environ.copy()
+        if "API_KEY" not in env:
+            env["API_KEY"] = "dummy_key_for_testing"
+        if "EMBEDDING_API_KEY" not in env:
+            env["EMBEDDING_API_KEY"] = "dummy_key_for_testing"
+        completion = subprocess.run(command, env=env)
         assert completion.returncode == 0, (
             f"Indexer failed with return code: {completion.returncode}"
         )
@@ -247,6 +253,10 @@ class TestIndexer:
         dispose = None
         if azure is not None:
             dispose = asyncio.run(prepare_azurite_data(input_path, azure))
+
+        # Set dummy API keys for Azure AI models to avoid validation errors
+        os.environ["API_KEY"] = "dummy_key_for_testing"
+        os.environ["EMBEDDING_API_KEY"] = "dummy_key_for_testing"
 
         print("running indexer")
         self.__run_indexer(root, input_file_type, index_method)

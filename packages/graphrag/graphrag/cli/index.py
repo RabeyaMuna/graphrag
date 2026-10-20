@@ -57,6 +57,9 @@ def index_cli(
         cli_overrides["reporting.base_dir"] = str(output_dir)
         cli_overrides["update_index_output.base_dir"] = str(output_dir)
     config = load_config(root_dir, config_filepath, cli_overrides)
+    if not skip_validation:
+        from graphrag.config.validation import validate_config
+        validate_config(config)
     _run_index(
         config=config,
         method=method,
@@ -87,6 +90,9 @@ def update_cli(
         cli_overrides["update_index_output.base_dir"] = str(output_dir)
 
     config = load_config(root_dir, config_filepath, cli_overrides)
+    if not skip_validation:
+        from graphrag.config.validation import validate_config
+        validate_config(config)
 
     _run_index(
         config=config,
