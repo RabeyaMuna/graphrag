@@ -30,6 +30,11 @@ WELL_KNOWN_AZURITE_CONNECTION_STRING = "DefaultEndpointsProtocol=http;AccountNam
 KNOWN_WARNINGS = [NO_COMMUNITY_RECORDS_WARNING]
 
 
+def _missing_env_vars(*names: str) -> list[str]:
+    """Return environment variables that are unset or empty."""
+    return [name for name in names if not os.getenv(name)]
+
+
 def _load_fixtures():
     """Load all fixtures from the tests/data folder."""
     params = []
@@ -238,6 +243,19 @@ class TestIndexer:
         workflow_config: dict[str, dict[str, Any]],
         query_config: list[dict[str, str]],
     ):
+        required_env = ["GRAPHRAG_API_KEY", "GRAPHRAG_API_BASE"]
+        if workflow_config.get("azure") is not None:
+            required_env.extend(
+                ["AZURE_AI_SEARCH_URL_ENDPOINT", "AZURE_AI_SEARCH_API_KEY"]
+            )
+
+        missing_env = _missing_env_vars(*required_env)
+        if missing_env:
+            pytest.skip(
+                "Smoke test requires configured secrets: "
+                + ", ".join(sorted(missing_env))
+            )
+
         if workflow_config.get("skip"):
             print(f"skipping smoke test {input_path})")
             return
